@@ -68,6 +68,58 @@ Metrex.Counter.decrement("pageviews", 3)
 Metrex.Counter.count("pageviews")
 ```
 
+### Meters
+
+Timeseries counter approach to increment, decrement using unixtime stamp.
+
+#### Static meters
+
+Add list of counters into config.exs file to autostart counters:
+
+```elixir
+config :metrex,
+  meters: ["pageviews"]
+```
+
+#### On-demand meters
+
+To create on-demand meters, you need to call `start_link` function:
+
+```elixir
+# Initialize counter with 0
+Metrex.Meter.start_link("special_clicks")
+
+# Initialize counter with x(number)
+Metrex.Meter.start_link("special_clicks", %{1475452816 => 35, 1475452816 => 28})
+```
+
+#### Meter operations
+
+Meter operations are increment, decrement, count and dump:
+
+```elixir
+# Increment a meter by 1
+Metrex.Meter.increment("pageviews")
+
+# Increment a meter by x(number)
+Metrex.Meter.increment("pageviews", 5)
+
+# Decrement a meter by 1
+Metrex.Meter.decrement("pageviews")
+
+# Decrement a meter by x(number)
+Metrex.Meter.decrement("pageviews", 3)
+
+# Get latest meter count
+Metrex.Meter.count("pageviews")
+
+# Get meter for unixtime
+Metrex.Meter.count("pageviews", 1475452816)
+
+# Dump meter map related to a metric
+Metrex.Meter.dump("pageviews")
+```
+
 ## Contribution
 
 ### Issues, Bugs, Documentation, Enhancements
@@ -80,7 +132,7 @@ Metrex.Counter.count("pageviews")
 
 ## Todo
 
-[ ] Implement meters
+[x] Implement meters
 [ ] Implement histograms
 [ ] Implement timers
 [ ] Implement gauges

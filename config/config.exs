@@ -3,4 +3,5 @@
 use Mix.Config
 
 config :metrex,
-  counters: ["sample"]
+  counters: ["c_sample"],
+  meters: ["m_sample"]
