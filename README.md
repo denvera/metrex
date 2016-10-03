@@ -10,7 +10,7 @@ The package can be installed as:
 
     ```elixir
     def deps do
-      [{:metrex, "~> 0.0.1"}]
+      [{:metrex, "~> 0.0.2"}]
     end
     ```
 
@@ -132,12 +132,17 @@ Metrex.Meter.dump("pageviews")
 
 ## Todo
 
-[x] Implement meters
-[ ] Implement histograms
-[ ] Implement timers
-[ ] Implement gauges
-[ ] Implement reporting service behaviour
-[ ] Implement reporting services
+  - [x] Implement meters
+
+  - [ ] Implement histograms
+
+  - [ ] Implement timers
+
+  - [ ] Implement gauges
+
+  - [ ] Implement reporting service behaviour
+
+  - [ ] Implement reporting services
 
 ## License
 
