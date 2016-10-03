@@ -103,10 +103,10 @@ defmodule Metrex.Meter do
   defp update(metric, val) do
     metric_name = name(metric)
     time = :erlang.system_time(:seconds)
-    Counter.increment(metric_name, val)
+    count = count(metric, time) + 1
     metric_name
     |> String.to_atom
-    |> Agent.update(
-         &(Map.put(&1, time, Counter.count(metric_name))))
+    |> Agent.update(&(Map.put(&1, time, count)))
+    Counter.increment(metric_name, val)
   end
 end
