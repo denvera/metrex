@@ -9,7 +9,7 @@ defmodule Metrex do
   @meters Application.get_env(:metrex, :meters) || []
 
   @doc """
-  Starts Metrex.Counter agents when app starts
+  Starts Metrex.Counter, Metrex.Meter agents when app starts
   """
   def start(_type, _args) do
     import Supervisor.Spec, warn: false
