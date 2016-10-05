@@ -10,7 +10,7 @@ The package can be installed as:
 
     ```elixir
     def deps do
-      [{:metrex, "~> 0.0.2"}]
+      [{:metrex, "~> 0.1.0"}]
     end
     ```
 
@@ -78,7 +78,8 @@ Add list of counters into config.exs file to autostart counters:
 
 ```elixir
 config :metrex,
-  meters: ["pageviews"]
+  meters: ["pageviews"],
+  ttl: 900 # data to live for meters(auto cleans old data), default is 900.
 ```
 
 #### On-demand meters
@@ -110,10 +111,7 @@ Metrex.Meter.decrement("pageviews")
 # Decrement a meter by x(number)
 Metrex.Meter.decrement("pageviews", 3)
 
-# Get latest meter count
-Metrex.Meter.count("pageviews")
-
-# Get meter for unixtime
+# Get meter for the time(seconds)
 Metrex.Meter.count("pageviews", 1475452816)
 
 # Dump meter map related to a metric

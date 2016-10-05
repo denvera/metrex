@@ -11,7 +11,8 @@ defmodule Metrex.Meter do
 
   ```elixir
   config :metrex,
-    meters: ["pageviews"]
+    meters: ["pageviews"],
+    ttl: 900
   ```
 
   #### On-demand meters
@@ -43,9 +44,6 @@ defmodule Metrex.Meter do
   # Decrement a meter by x(number)
   Metrex.Meter.decrement("pageviews", 3)
 
-  # Get latest meter count
-  Metrex.Meter.count("pageviews")
-
   # Get meter for unixtime
   Metrex.Meter.count("pageviews", 1475452816)
 
@@ -54,21 +52,19 @@ defmodule Metrex.Meter do
   ```
   """
 
-  alias Metrex.Counter
+  use GenServer
+  alias Metrex.Scheduler.Cleaner
+
+  @ttl Application.get_env(:metrex, :ttl) || 900
 
   @doc """
   Start a new meter metric
   """
-  def start_link(metric) do
-    metric_name = name(metric)
-    Counter.start_link(metric_name)
-    Agent.start_link(fn -> %{} end, name: String.to_atom(metric_name))
-  end
-  def start_link(metric, val = %{}) when val != %{} do
-    metric_name = name(metric)
-    {_, counter_val} = val |> Enum.to_list |> List.last
-    Counter.start_link(metric_name, counter_val)
-    Agent.start_link(fn -> val end, name: String.to_atom(metric_name))
+  def start_link(metric),
+    do: start_link(metric, %{})
+  def start_link(metric, val = %{}) when is_map(val) do
+    Cleaner.register(__MODULE__, metric, @ttl)
+    GenServer.start_link(__MODULE__, val, name: process_name(metric))
   end
 
   @doc """
@@ -84,29 +80,57 @@ defmodule Metrex.Meter do
     do: update(metric, -val)
 
   @doc """
-  Display current counter
+  Remove metric at the time
   """
-  def count(metric),
-    do: metric |> name |> Counter.count
+  def remove(metric, time),
+    do: metric |> process_name |> GenServer.cast({:remove, time})
+
+  @doc """
+  Reset all the metric data
+  """
+  def reset(metric),
+    do: metric |> process_name |> GenServer.cast({:reset})
+
+  @doc """
+  Display current counter at given time
+  """
   def count(metric, time),
-    do: metric |> name |> String.to_atom |> Agent.get(&(&1)) |> Map.get(time, 0)
+    do: metric |> process_name |> GenServer.call({:count, time})
 
   @doc """
   Return all metric data
   """
   def dump(metric),
-    do: metric |> name |> String.to_atom |> Agent.get(&(&1))
+    do: metric |> process_name |> GenServer.call({:dump})
 
-  defp name(metric),
-    do: "meter." <> metric
+  defp update(metric, val),
+    do: metric |> process_name |> GenServer.call({:update, val})
 
-  defp update(metric, val) do
-    metric_name = name(metric)
+  defp process_name(metric),
+    do: String.to_atom("meter." <> metric)
+
+  ## Private API
+
+  @doc false
+  def handle_call({:dump}, _from, state),
+    do: {:reply, state, state}
+
+  @doc false
+  def handle_call({:count, time}, _from, state),
+    do: {:reply, Map.get(state, time, 0), state}
+
+  @doc false
+  def handle_call({:update, val}, _from, state) do
     time = :erlang.system_time(:seconds)
-    count = count(metric, time) + 1
-    metric_name
-    |> String.to_atom
-    |> Agent.update(&(Map.put(&1, time, count)))
-    Counter.increment(metric_name, val)
+    count = Map.get(state, time, 0) + val
+    {:reply, count, Map.put(state, time, count)}
   end
+
+  @doc false
+  def handle_cast({:reset}, _state),
+    do: {:noreply, %{}}
+
+  @doc false
+  def handle_cast({:remove, time}, state),
+    do: {:noreply, Map.delete(state, time)}
 end
