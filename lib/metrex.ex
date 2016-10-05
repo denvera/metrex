@@ -15,11 +15,11 @@ defmodule Metrex do
     import Supervisor.Spec, warn: false
 
     counters = Enum.map(@counters, fn(counter) ->
-      worker(Metrex.Counter, [counter]) end
+      worker(Metrex.Counter, [counter], id: make_ref) end
     )
 
     meters = Enum.map(@meters, fn(meter) ->
-      worker(Metrex.Meter, [meter]) end
+      worker(Metrex.Meter, [meter], id: make_ref) end
     )
 
     children = [

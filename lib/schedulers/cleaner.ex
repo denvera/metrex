@@ -62,6 +62,8 @@ defmodule Metrex.Scheduler.Cleaner do
     Enum.each(metrics, fn({metric_type, metric_name, ttl}) ->
       time = :erlang.system_time(:seconds) - ttl
       GenServer.cast(__MODULE__,
+        {:clean_metric, metric_type, metric_name, time - 1})
+      GenServer.cast(__MODULE__,
         {:clean_metric, metric_type, metric_name, time}) end)
     {:noreply, metrics}
   end

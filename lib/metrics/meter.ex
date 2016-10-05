@@ -24,7 +24,7 @@ defmodule Metrex.Meter do
   Metrex.Meter.start_link("special_clicks")
 
   # Initialize counter with x(number)
-  Metrex.Meter.start_link("special_clicks", %{1475452816 => 35, 1475452816 => 28})
+  Metrex.Meter.start_link("special_clicks", [{"1475452816", 5}, {"1475452816", 28}])
   ```
 
   #### Meter operations
@@ -61,8 +61,8 @@ defmodule Metrex.Meter do
   Start a new meter metric
   """
   def start_link(metric),
-    do: start_link(metric, %{})
-  def start_link(metric, val = %{}) when is_map(val) do
+    do: start_link(metric, [])
+  def start_link(metric, val) when is_list(val) do
     Cleaner.register(__MODULE__, metric, @ttl)
     GenServer.start_link(__MODULE__, val, name: process_name(metric))
   end
@@ -104,7 +104,7 @@ defmodule Metrex.Meter do
     do: metric |> process_name |> GenServer.call({:dump})
 
   defp update(metric, val),
-    do: metric |> process_name |> GenServer.call({:update, val})
+    do: metric |> process_name |> GenServer.cast({:update, val})
 
   defp process_name(metric),
     do: String.to_atom("meter." <> metric)
@@ -116,21 +116,30 @@ defmodule Metrex.Meter do
     do: {:reply, state, state}
 
   @doc false
-  def handle_call({:count, time}, _from, state),
-    do: {:reply, Map.get(state, time, 0), state}
+  def handle_call({:count, time}, _from, state) do
+    time = "#{time}"
+    {time, count} = List.keyfind(state, time, 0) || {time, 0}
+    {:reply, count, state}
+  end
 
   @doc false
-  def handle_call({:update, val}, _from, state) do
-    time = :erlang.system_time(:seconds)
-    count = Map.get(state, time, 0) + val
-    {:reply, count, Map.put(state, time, count)}
+  def handle_cast({:update, val}, state) do
+    time = "#{:erlang.system_time(:seconds)}"
+    state =
+      case List.keyfind(state, time, 0) do
+        nil ->
+          List.insert_at(state, 0, {time, val})
+        {time, count} ->
+          List.keyreplace(state, time, 0, {time, count+val})
+      end
+    {:noreply, state}
   end
 
   @doc false
   def handle_cast({:reset}, _state),
-    do: {:noreply, %{}}
+    do: {:noreply, []}
 
   @doc false
   def handle_cast({:remove, time}, state),
-    do: {:noreply, Map.delete(state, time)}
+    do: {:noreply, List.keydelete(state, "#{time}", 0)}
 end

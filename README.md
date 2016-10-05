@@ -10,7 +10,7 @@ The package can be installed as:
 
     ```elixir
     def deps do
-      [{:metrex, "~> 0.1.0"}]
+      [{:metrex, "~> 0.1.1"}]
     end
     ```
 
@@ -28,7 +28,7 @@ The package can be installed as:
 
 #### Static counters
 
-Add list of counters into config.exs file to autostart counters:
+Add list of counters into config.exs or your env file to autostart counters:
 
 ```elixir
 config :metrex,
@@ -74,12 +74,12 @@ Timeseries counter approach to increment, decrement using unixtime stamp.
 
 #### Static meters
 
-Add list of counters into config.exs file to autostart counters:
+Add list of counters into config.exs or your env file to autostart counters:
 
 ```elixir
 config :metrex,
   meters: ["pageviews"],
-  ttl: 900 # data to live for meters(auto cleans old data), default is 900.
+  ttl: 900
 ```
 
 #### On-demand meters
@@ -91,7 +91,7 @@ To create on-demand meters, you need to call `start_link` function:
 Metrex.Meter.start_link("special_clicks")
 
 # Initialize counter with x(number)
-Metrex.Meter.start_link("special_clicks", %{1475452816 => 35, 1475452816 => 28})
+Metrex.Meter.start_link("special_clicks", [{"1475452816", 5}, {"1475452816", 28}])
 ```
 
 #### Meter operations
@@ -111,7 +111,7 @@ Metrex.Meter.decrement("pageviews")
 # Decrement a meter by x(number)
 Metrex.Meter.decrement("pageviews", 3)
 
-# Get meter for the time(seconds)
+# Get meter for unixtime
 Metrex.Meter.count("pageviews", 1475452816)
 
 # Dump meter map related to a metric
