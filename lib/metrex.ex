@@ -22,7 +22,11 @@ defmodule Metrex do
       worker(Metrex.Meter, [meter]) end
     )
 
+    children = [
+      worker(Metrex.Scheduler.Cleaner, [])
+    ]
+
     opts = [strategy: :one_for_one, name: Metrex.Supervisor]
-    Supervisor.start_link(counters ++ meters, opts)
+    Supervisor.start_link(children ++ counters ++ meters, opts)
   end
 end
