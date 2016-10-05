@@ -16,7 +16,7 @@ defmodule Metrex.MeterTest do
   end
 
   test "init" do
-    assert Meter.dump(@metric) == %{}
+    assert Meter.dump(@metric) == []
   end
 
   test "new metric is member of " do
@@ -25,7 +25,7 @@ defmodule Metrex.MeterTest do
 
   test "init with val" do
     name = "test_with_start"
-    Meter.start_link(name, %{0 => 9, 1 => 1})
+    Meter.start_link(name, [{"0", 9}, {"1",1}])
     assert Meter.count(name, 0) == 9
     assert Meter.count(name, 1) == 1
   end
@@ -51,22 +51,22 @@ defmodule Metrex.MeterTest do
   end
 
   test "dump all metric map" do
-    assert Meter.dump(@metric) == %{}
+    assert Meter.dump(@metric) == []
     Enum.each(0..2, fn(_x) -> :timer.sleep(1000); Meter.increment(@metric) end)
     assert Meter.dump(@metric) |> Enum.count == 3
   end
 
   test "remove metric keys" do
-    assert Meter.dump(@metric) == %{}
+    assert Meter.dump(@metric) == []
     Enum.each(0..2, fn(_x) -> :timer.sleep(1000); Meter.increment(@metric) end)
     Enum.each(Meter.dump(@metric), fn({key, _val}) -> Meter.remove(@metric, key) end)
-    assert Meter.dump(@metric) == %{}
+    assert Meter.dump(@metric) == []
   end
 
   test "reset metric data" do
-    assert Meter.dump(@metric) == %{}
+    assert Meter.dump(@metric) == []
     Enum.each(0..2, fn(_x) -> :timer.sleep(1000); Meter.increment(@metric) end)
     Meter.reset(@metric)
-    assert Meter.dump(@metric) == %{}
+    assert Meter.dump(@metric) == []
   end
 end
