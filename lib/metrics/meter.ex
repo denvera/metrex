@@ -55,7 +55,7 @@ defmodule Metrex.Meter do
   use GenServer
   alias Metrex.Scheduler.Cleaner
 
-  @ttl Application.get_env(:metrex, :ttl) || 900
+  @ttl Application.get_env(:metrex, :ttl)
 
   @doc """
   Start a new meter metric
@@ -118,8 +118,8 @@ defmodule Metrex.Meter do
   @doc false
   def handle_call({:count, time}, _from, state) do
     time = "#{time}"
-    {time, count} = List.keyfind(state, time, 0) || {time, 0}
-    {:reply, count, state}
+    {_, count_val} = List.keyfind(state, time, 0) || {time, 0}
+    {:reply, count_val, state}
   end
 
   @doc false
@@ -129,8 +129,8 @@ defmodule Metrex.Meter do
       case List.keyfind(state, time, 0) do
         nil ->
           List.insert_at(state, 0, {time, val})
-        {time, count} ->
-          List.keyreplace(state, time, 0, {time, count+val})
+        {time, count_val} ->
+          List.keyreplace(state, time, 0, {time, count_val + val})
       end
     {:noreply, state}
   end
