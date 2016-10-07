@@ -41,10 +41,10 @@ To create on-demand counters, you need to call `start_link` function:
 
 ```elixir
 # Initialize counter with 0
-Metrex.Counter.start_link("special_clicks")
+Metrex.start_counter("special_clicks")
 
 # Initialize counter with x(number)
-Metrex.Counter.start_link("special_clicks", 28)
+Metrex.start_counter("special_clicks", 28)
 ```
 
 #### Counter operations
@@ -88,10 +88,10 @@ To create on-demand meters, you need to call `start_link` function:
 
 ```elixir
 # Initialize counter with 0
-Metrex.Meter.start_link("special_clicks")
+Metrex.start_meter("special_clicks")
 
 # Initialize counter with x(number)
-Metrex.Meter.start_link("special_clicks", [{"1475452816", 5}, {"1475452816", 28}])
+Metrex.start_meter("special_clicks", [{"1475452816", 5}, {"1475452816", 28}])
 ```
 
 #### Meter operations

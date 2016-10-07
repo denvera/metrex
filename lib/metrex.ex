@@ -33,18 +33,18 @@ defmodule Metrex do
   @doc """
   Starts `Metrex.Counter` child
   """
-  def start_counter(metric) do
+  def start_counter(metric, val \\ 0) do
     import Supervisor.Spec, warn: false
     Supervisor.start_child(
-      Metrex.Supervisor, worker(Metrex.Counter, [metric], id: make_ref))
+      Metrex.Supervisor, worker(Metrex.Counter, [metric, val], id: make_ref))
   end
 
   @doc """
   Starts `Metrex.Meter` child
   """
-  def start_meter(metric) do
+  def start_meter(metric, val \\ []) do
     import Supervisor.Spec, warn: false
     Supervisor.start_child(
-      Metrex.Supervisor, worker(Metrex.Meter, [metric], id: make_ref))
+      Metrex.Supervisor, worker(Metrex.Meter, [metric, val], id: make_ref))
   end
 end

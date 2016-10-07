@@ -21,10 +21,10 @@ defmodule Metrex.Meter do
 
   ```elixir
   # Initialize counter with 0
-  Metrex.Meter.start_link("special_clicks")
+  Metrex.start_meter("special_clicks")
 
   # Initialize counter with x(number)
-  Metrex.Meter.start_link("special_clicks", [{"1475452816", 5}, {"1475452816", 28}])
+  Metrex.start_meter("special_clicks", [{"1475452816", 5}, {"1475452816", 28}])
   ```
 
   #### Meter operations
