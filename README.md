@@ -10,7 +10,7 @@ The package can be installed as:
 
     ```elixir
     def deps do
-      [{:metrex, "~> 0.1.1"}]
+      [{:metrex, "~> 0.1.2"}]
     end
     ```
 
