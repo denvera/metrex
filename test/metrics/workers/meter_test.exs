@@ -1,11 +1,15 @@
 defmodule Metrex.MeterTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case, async: false
+  import ExUnit.CaptureLog
   alias Metrex.Meter
 
   @metric "test"
+  @test_hooks Metrex.TestHooks
+  @hooks Metrex.Hook.Default
   @ttl Application.get_env(:metrex, :ttl)
 
   setup do
+    Application.put_env(:metrex, :hooks, @hooks)
     Meter.start_link(@metric)
 
     on_exit fn ->
@@ -19,15 +23,14 @@ defmodule Metrex.MeterTest do
     assert Meter.dump(@metric) == []
   end
 
-  test "new metric is member of " do
-    assert Enum.member?(Metrex.Scheduler.Cleaner.dump, {Metrex.Meter, @metric, @ttl}) == true
+  test "init with test hook" do
+    Application.put_env(:metrex, :hooks, @test_hooks)
+    Meter.start_link("some_other")
+    assert Meter.dump("some_other") == [{"0", 9}, {"1", 28}]
   end
 
-  test "init with val" do
-    name = "test_with_start"
-    Meter.start_link(name, [{"0", 9}, {"1",1}])
-    assert Meter.count(name, 0) == 9
-    assert Meter.count(name, 1) == 1
+  test "new metric is member of Cleaner schedulers" do
+    assert Enum.member?(Metrex.Scheduler.Cleaner.dump, {Metrex.Meter, @metric, @ttl}) == true
   end
 
   test "increment by 1 if no val specified" do
@@ -68,5 +71,12 @@ defmodule Metrex.MeterTest do
     Enum.each(0..2, fn(_x) -> :timer.sleep(1000); Meter.increment(@metric) end)
     Meter.reset(@metric)
     assert Meter.dump(@metric) == []
+  end
+
+  @tag :exit
+  test "exit" do
+    Application.put_env(:metrex, :hooks, @test_hooks)
+    {:ok, pid} = Meter.start_link("some_new")
+    assert capture_log(fn() -> GenServer.stop(pid, :normal) end) |> String.contains?("{\"0\", 9}, {\"1\", 28}")
   end
 end

@@ -10,7 +10,7 @@ The package can be installed as:
 
     ```elixir
     def deps do
-      [{:metrex, "~> 0.1.2"}]
+      [{:metrex, "~> 0.2.0"}]
     end
     ```
 
@@ -42,10 +42,9 @@ To create on-demand counters, you need to call `start_link` function:
 ```elixir
 # Initialize counter with 0
 Metrex.start_counter("special_clicks")
-
-# Initialize counter with x(number)
-Metrex.start_counter("special_clicks", 28)
 ```
+
+To initialize counter with x(number), you need to define your hook. See hooks section for details.
 
 #### Counter operations
 
@@ -87,12 +86,11 @@ config :metrex,
 To create on-demand meters, you need to call `start_link` function:
 
 ```elixir
-# Initialize counter with 0
+# Initialize meter with []
 Metrex.start_meter("special_clicks")
-
-# Initialize counter with x(number)
-Metrex.start_meter("special_clicks", [{"1475452816", 5}, {"1475452816", 28}])
 ```
+
+To initialize meter with list of atoms, you need to define your hook. See hooks section for details.
 
 #### Meter operations
 
@@ -116,6 +114,59 @@ Metrex.Meter.count("pageviews", 1475452816)
 
 # Dump meter map related to a metric
 Metrex.Meter.dump("pageviews")
+```
+
+## Hooks and Configurations
+
+By default metrex does not have capability for initializing mertics with certain data or saving on exit situations. Because backend for saving and reloading may vary on applications. To overcome this situations, `metrex` comes with a simple hook module that you can hack. All you need to do create a hook module and add it config.exs or to your env `dev.exs`, `test.exs` and `prod.exs`.
+
+File: `config.exs` or '`dev.exs`, `test.exs`, `prod.exs`':
+
+```
+config :metrex,
+  ttl: 900,
+  counters: ["sample_counter", "page_views"],
+  meters: ["sample_meter", "page_views", "some_other"],
+  hooks: SampleMetricsHook
+```
+
+File: `sample_metrics_hook.ex` (Sample hook function implementation)
+
+```elixir
+defmodule SampleMetricsHook do
+  use Metrex.Hook
+
+  @doc """
+  Hook on `Metrex.Counter` init
+  """
+  def counter_init(metric) do
+    0 # put some integer or load from source like redis, cachex, db, file, etc.
+  end
+
+  @doc """
+  Default hook on `Metrex.Counter` exit
+  """
+  def counter_exit(reason, metric, val) do
+    # save val on exit to destinations like redis, cachex, db, file, etc.
+    :ok
+  end
+
+  @doc """
+  Default hook on `Metrex.Meter` exit
+  """
+  def meter_init(metric) do
+    [] # put some list of atoms or load from source like redis, cachex, db, file, etc.
+  end
+
+  @doc """
+  Default hook on `Metrex.Meter` exit
+  """
+  def meter_exit(reason, metric, val) do
+     # save val on exit to destinations like redis, cachex, db, file, etc.
+    :ok
+  end
+end
+
 ```
 
 ## Contribution

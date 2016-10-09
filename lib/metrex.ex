@@ -5,46 +5,31 @@ defmodule Metrex do
 
   use Application
 
-  @counters Application.get_env(:metrex, :counters) || []
-  @meters Application.get_env(:metrex, :meters) || []
-
   @doc """
-  Starts `Metrex.Counter, Metrex.Meter` agents when app starts
+  Starts `Metrex.Counter, Metrex.Meter` and Cleaner when app starts
   """
   def start(_type, _args) do
     import Supervisor.Spec, warn: false
 
-    counters = Enum.map(@counters, fn(counter) ->
-      worker(Metrex.Counter, [counter], id: make_ref) end
-    )
-
-    meters = Enum.map(@meters, fn(meter) ->
-      worker(Metrex.Meter, [meter], id: make_ref) end
-    )
-
     children = [
+      supervisor(Metrex.CounterSupervisor, []),
+      supervisor(Metrex.MeterSupervisor, []),
       worker(Metrex.Scheduler.Cleaner, [])
     ]
 
     opts = [strategy: :one_for_one, name: Metrex.Supervisor]
-    Supervisor.start_link(children ++ counters ++ meters, opts)
+    Supervisor.start_link(children, opts)
   end
 
   @doc """
   Starts `Metrex.Counter` child
   """
-  def start_counter(metric, val \\ 0) do
-    import Supervisor.Spec, warn: false
-    Supervisor.start_child(
-      Metrex.Supervisor, worker(Metrex.Counter, [metric, val], id: make_ref))
-  end
+  def start_counter(metric),
+    do: Metrex.CounterSupervisor.start_child(metric)
 
   @doc """
   Starts `Metrex.Meter` child
   """
-  def start_meter(metric, val \\ []) do
-    import Supervisor.Spec, warn: false
-    Supervisor.start_child(
-      Metrex.Supervisor, worker(Metrex.Meter, [metric, val], id: make_ref))
-  end
+  def start_meter(metric),
+    do: Metrex.MeterSupervisor.start_child(metric)
 end
