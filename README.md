@@ -130,7 +130,7 @@ config :metrex,
   hooks: SampleMetricsHook
 ```
 
-File: `sample_metrics_hook.ex` (Sample hook function implementation)
+File: `sample_metrics_hook.ex` (Sample hook module implementation)
 
 ```elixir
 defmodule SampleMetricsHook do
