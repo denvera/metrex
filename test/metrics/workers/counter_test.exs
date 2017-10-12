@@ -3,13 +3,18 @@ defmodule Metrex.CounterTest do
   import ExUnit.CaptureLog
   alias Metrex.Counter
 
-  @metric "test"
+  @metric "counter_test"
   @test_hooks Metrex.TestHooks
   @hooks Metrex.Hook.Default
 
   setup do
     Application.put_env(:metrex, :hooks, @hooks)
-    Counter.start_link(@metric)
+    case Counter.start_link(@metric) do
+      {:ok, _pid} -> true
+      {:error, reason} ->
+        :timer.sleep(200)
+        Counter.start_link(@metric)
+    end
     :ok
   end
 

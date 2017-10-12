@@ -3,14 +3,19 @@ defmodule Metrex.MeterTest do
   import ExUnit.CaptureLog
   alias Metrex.Meter
 
-  @metric "test"
+  @metric "meter_test"
   @test_hooks Metrex.TestHooks
   @hooks Metrex.Hook.Default
   @ttl Application.get_env(:metrex, :ttl)
 
   setup do
     Application.put_env(:metrex, :hooks, @hooks)
-    Meter.start_link(@metric)
+    case Meter.start_link(@metric) do
+      {:ok, _pid} -> true
+      {:error, {:already_started, _pid}} ->
+        :timer.sleep(200)
+        Meter.start_link(@metric)
+    end
 
     on_exit fn ->
       Metrex.Scheduler.Cleaner.unregister(Metrex.Meter, @metric, @ttl)
